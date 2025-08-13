@@ -1,0 +1,36 @@
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import LabelEncoder
+from xgboost import XGBClassifier
+
+# Load CSV file (make sure it has 'review' and 'sentiment' columns)
+df = pd.read_csv("reviews.csv")  # <-- change to your file name
+
+# TF-IDF Vectorization
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(df['review'])
+y_text = df['sentiment']
+
+# Encode labels
+le = LabelEncoder()
+y = le.fit_transform(y_text)
+
+# Train/test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# XGBoost model
+xgb = XGBClassifier()
+xgb.fit(X_train, y_train)
+
+# Evaluate
+pred = xgb.predict(X_test)
+acc = accuracy_score(y_test, pred)
+print(f"Accuracy: {acc*100:.1f}%")
+
+# Test a new review
+new_review = "bad product"
+new_vec = vectorizer.transform([new_review])
+result = le.inverse_transform(xgb.predict(new_vec))[0]
+print(f"New review: '{new_review}' -> {result}")
